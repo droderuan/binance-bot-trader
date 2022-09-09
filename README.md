@@ -1,4 +1,5 @@
 # Crypto Trader
+![ezgif com-gif-maker (1)](https://user-images.githubusercontent.com/43659888/189414245-ce47719b-3caf-49ca-bca1-a4c69d960846.gif)
 
 **Welcome to the crypto trader bot for the binance.**
 My intention was to be my personal bot to make trades based on strategies that I find on the internet. Now I think it could be used for others.
