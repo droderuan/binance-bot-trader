@@ -1,0 +1,8 @@
+version: "3.0"
+# :name: only works in docker compose v2 https://www.docker.com/blog/announcing-compose-v2-general-availability/
+# comment out if you don't want to activate compose v2
+services:
+  crypto-bot:
+    build: .
+    env_file:
+      - .env
