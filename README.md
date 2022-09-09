@@ -36,3 +36,11 @@ It connects to Binance using WebSockets, so the bot gets real-time updates about
 - Refactor the setup of the bot to be more friendly.
 - Create strategies to simulate orders and stop-loss orders.
 - Improve the way the bot handles the monitoring of an open order.
+
+## Contact
+Would like to talk? Feel free to contact me.
+* E-mail: ruan.fer.gui@gmail
+* Linkedin: [Ruan Ferreira](https://www.linkedin.com/in/ruan-ferreira-87a15a180/)
+
+Would like to make a donation?
+My wallet: 0xDBdE9621d01D72c69aB60FaC73EDf93F735C54f6
