@@ -17,13 +17,13 @@ My main goal was to provide a bot that could receive new strategies and indicato
 ### Strategies
 
 Every strategy is designed to receive an update and make a decision over it, so the bot can be very precisely and consistently. To implement a new strategy would be only needed to follow the interface and let the bot do the rest.
-The bot can have two statuses:
+The bot can have two states:
 
 - Bought: if you have the target coin
 - Empty: If you have not bought the coin
-  > You can set manually the status or let the bot decide which status to start. It checks of the last order of the pair.
+  > You can set manually the state or let the bot decide which state to start. It checks of the last order of the pair.
 
-When a strategy emits a BUY/SELL order, the bot will create an order and check if it is filled by 5 times with 5s interval, 25 seconds. If it is not filled, the bot cancels the order and waits for the next BUY/SELL event. If the strategy still says to BUY/SELL, this process starts again until the bot changes his status to the opposite.
+When a strategy emits a BUY/SELL order, the bot will create an order and check if it is filled by 5 times with 5s interval, 25 seconds. If it is not filled, the bot cancels the order and waits for the next BUY/SELL event. If the strategy still says to BUY/SELL, this process starts again until the bot changes his state to the opposite.
 
 Right now the bot can be configured with 2 strategies: **Simple SMA and SMA Crossover**.
 
