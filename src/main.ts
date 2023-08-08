@@ -9,41 +9,17 @@ export const botConfig = new BotConfig({
   pair: env.pair as Pairs,
   candleSize: env.window as CandleInterval,
   strategy: {
-    name: 'SMA Crossover',
+    name: 'SMA Local Minimum',
     config: {
-      faster: {
-        window: 24,
-        reference: {
-          toBuy: 'closePrice',
-          toSell: 'closePrice'
-        }
-      },
-      slower: {
-        window: 168,
-        reference: {
-          toBuy: 'closePrice',
-          toSell: 'closePrice'
-        }
+      range: 9,
+      window: 168,
+      reference: {
+        toBuy: 'closePrice',
+        toSell: 'closePrice'
       }
     }
   },
 })
-
-// export const botConfig = new BotConfig({
-//   pair: 'SHIBUSDT',
-//   candleSize: '1m',
-//   startPosition: 'BOUGHT',
-//   strategy: {
-//     name: 'Simple SMA',
-//     config: {
-//       window: 5,
-//       reference: {
-//         toBuy: 'lowPrice',
-//         toSell: 'highPrice'
-//       }
-//     }
-//   },
-// })
 
 export const binanceClient = new BinanceClient({
   apiKey: env.binanceApiKey,

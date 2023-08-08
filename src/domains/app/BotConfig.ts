@@ -1,10 +1,10 @@
 import { SimpleSmaConfig } from "../strategies/SimpleSMA";
 import { SmaCrossOverConfig } from "../strategies/SMACrossover";
+import { SMALocalMinimumConfig } from "../strategies/SMALocalMinimum";
 import { CandleInterval } from "../../types/Candle";
 import { Pairs } from "../../types/Pair";
 
 import { Position } from "../observer/Referee";
-import { Strategies } from "../strategies/types";
 
 interface SimpleSMA {
   name: "Simple SMA",
@@ -16,7 +16,12 @@ interface SMACrossover {
   config: SmaCrossOverConfig
 }
 
-export type StrategieConfig = SimpleSMA | SMACrossover
+interface SMALocalMinimum {
+  name: "SMA Local Minimum",
+  config: SMALocalMinimumConfig
+}
+
+export type StrategieConfig = SimpleSMA | SMACrossover | SMALocalMinimum
 
 interface BotConfigParams {
   pair: Pairs
