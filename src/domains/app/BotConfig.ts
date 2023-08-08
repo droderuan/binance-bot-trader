@@ -28,6 +28,7 @@ interface BotConfigParams {
   strategy: StrategieConfig
   candleSize: CandleInterval
   startPosition?: Position
+  test?: boolean
 }
 
 class BotConfig {

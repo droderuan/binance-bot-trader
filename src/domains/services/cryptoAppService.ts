@@ -23,6 +23,8 @@ class CryptoAppService {
   private orderUpdateTries = 1
   private maxOrderUpdateTries = 5
 
+  private test = false
+
   private buyPrice = 0
   private sellPrice = 0
 
@@ -31,6 +33,7 @@ class CryptoAppService {
       pair: this.pair,
     })
     let currentPosition = this.botConfig.config.startPosition
+    this.test = this.botConfig.config.test || false
 
     if (!currentPosition) {
       logger.log({ from: 'CRYPTO APP', message: 'No start position detected - looking for the last order...' })
@@ -105,13 +108,15 @@ class CryptoAppService {
   async buy() {
     if (!this.orderLock) {
       try {
-        const buyPrice = await this.orderService.createBuyOrder({
-          PairInfo: this.pair,
-          quantity: this.wallet.getBalance().toBuy.available
-        })
-        this.orderLock = true
-        this.buyPrice = buyPrice || 0
-        await this.checkLastOrderIsFilled()
+        if (!this.test) {
+          const buyPrice = await this.orderService.createBuyOrder({
+            PairInfo: this.pair,
+            quantity: this.wallet.getBalance().toBuy.available
+          })
+          this.orderLock = true
+          this.buyPrice = buyPrice || 0
+          await this.checkLastOrderIsFilled()
+        }
         this.referee.updatePosition('BOUGHT')
       } catch (err) {
         console.log(err)
@@ -125,14 +130,17 @@ class CryptoAppService {
   async sell() {
     if (!this.orderLock) {
       try {
-        const sellPrice = await this.orderService.createSellOrder({
-          PairInfo: this.pair,
-          quantity: this.wallet.getBalance().toSell.available
-        })
-        this.orderLock = true
-        this.sellPrice = sellPrice || 0
-        await this.checkLastOrderIsFilled()
-        this.calculateProfit()
+        if (!this.test) {
+
+          const sellPrice = await this.orderService.createSellOrder({
+            PairInfo: this.pair,
+            quantity: this.wallet.getBalance().toSell.available
+          })
+          this.orderLock = true
+          this.sellPrice = sellPrice || 0
+          await this.checkLastOrderIsFilled()
+          this.calculateProfit()
+        }
         this.referee.updatePosition('EMPTY')
       } catch (err) {
         console.log(err)

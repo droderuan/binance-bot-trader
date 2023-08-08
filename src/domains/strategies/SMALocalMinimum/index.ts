@@ -42,6 +42,8 @@ export class SMALocalMinimum extends GenericStrategy {
       return 'convex'
     } else if (indexOfMin === middleValue) {
       return 'concave'
+    } else {
+      return 'no curve'
     }
   }
 
@@ -67,7 +69,10 @@ export class SMALocalMinimum extends GenericStrategy {
   }
 
   log() {
-    logger.log({ from: 'STRATEGIE', message: `SIMPLE SMA` })
-    this.sma.logUpdates()
+    const currentFasterSmaValue = this.sma.currentSMA(this.params.range)
+
+    logger.log({ from: 'STRATEGIE', message: `SMA Crossover` })
+    logger.log({ from: 'STRATEGIE', message: `current faster SMA \t${currentFasterSmaValue}` })
+    logger.log({ from: 'STRATEGIE', message: `current shape ${this.checkShapeOfSMA()}` })
   }
 }

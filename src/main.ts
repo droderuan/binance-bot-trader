@@ -8,6 +8,7 @@ import { CandleInterval } from './types/Candle'
 export const botConfig = new BotConfig({
   pair: env.pair as Pairs,
   candleSize: env.window as CandleInterval,
+  test: true,
   strategy: {
     name: 'SMA Local Minimum',
     config: {
@@ -29,5 +30,5 @@ export const binanceClient = new BinanceClient({
 
 const app = new App(botConfig)
 
-binanceClient.wait(() => app.start())
+binanceClient.wait(() => app.start().catch(console.log))
 

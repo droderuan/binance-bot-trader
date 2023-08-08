@@ -106,8 +106,8 @@ class SMA {
     return this.candles[this.candles.length - 1]
   }
 
-  currentSMA() {
-    const current = this.smaValues.slice(this.smaValues.length - 5)
+  currentSMA(lastValues: number = 5) {
+    const current = this.smaValues.slice(this.smaValues.length - lastValues)
 
     return current.join(' - ')
   }
