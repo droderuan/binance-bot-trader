@@ -39,9 +39,9 @@ export class SMALocalMinimum extends GenericStrategy {
     const indexOfMax = setOfSmaValues.indexOf(max)
 
     if (indexOfMax === middleValue) {
-      return 'convex'
-    } else if (indexOfMin === middleValue) {
       return 'concave'
+    } else if (indexOfMin === middleValue) {
+      return 'convex'
     } else {
       return 'no curve'
     }

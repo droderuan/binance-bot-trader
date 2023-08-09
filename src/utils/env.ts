@@ -13,4 +13,6 @@ export default {
   binanceApiSecret: assertNotUndefined(process.env.BINANCE_API_SECRET),
   pair: assertNotUndefined(process.env.PAIR),
   window: assertNotUndefined(process.env.WINDOW),
+  window1: assertNotUndefined(process.env.WINDOW_SIZE_1),
+  range: assertNotUndefined(process.env.RANGE),
 }

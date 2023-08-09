@@ -3,7 +3,7 @@ import App from './domains/app/App'
 import BotConfig from './domains/app/BotConfig'
 import BinanceClient from './domains/client/binance/Binance'
 import { Pairs } from './types/Pair'
-import { CandleInterval } from './types/Candle'
+import { CandleInterval, Window } from './types/Candle'
 
 export const botConfig = new BotConfig({
   pair: env.pair as Pairs,
@@ -12,8 +12,8 @@ export const botConfig = new BotConfig({
   strategy: {
     name: 'SMA Local Minimum',
     config: {
-      range: 9,
-      window: 168,
+      range: Number(env.range) as 3 | 5 | 7 | 9,
+      window: Number(env.window1) as Window,
       reference: {
         toBuy: 'closePrice',
         toSell: 'closePrice'
