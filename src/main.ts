@@ -10,13 +10,21 @@ export const botConfig = new BotConfig({
   candleSize: env.window as CandleInterval,
   test: true,
   strategy: {
-    name: 'SMA Local Minimum',
+    name: 'SMA Crossover',
     config: {
-      range: Number(env.range) as 3 | 5 | 7 | 9,
-      window: Number(env.window1) as Window,
-      reference: {
-        toBuy: 'closePrice',
-        toSell: 'closePrice'
+      faster: {
+        window: 24,
+        reference: {
+          toBuy: 'closePrice',
+          toSell: 'closePrice'
+        }
+      },
+      slower: {
+        window: 168,
+        reference: {
+          toBuy: 'closePrice',
+          toSell: 'closePrice'
+        }
       }
     }
   },
