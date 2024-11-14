@@ -1,11 +1,10 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 function assertNotUndefined(value: string | undefined) {
   if (value === undefined) {
-    throw new Error('Env undefined')
-  }
-  else return value
+    throw new Error("Env undefined");
+  } else return value;
 }
 
 export default {
@@ -13,6 +12,4 @@ export default {
   binanceApiSecret: assertNotUndefined(process.env.BINANCE_API_SECRET),
   pair: assertNotUndefined(process.env.PAIR),
   window: assertNotUndefined(process.env.WINDOW),
-  window1: assertNotUndefined(process.env.WINDOW_SIZE_1),
-  range: assertNotUndefined(process.env.RANGE),
-}
+};

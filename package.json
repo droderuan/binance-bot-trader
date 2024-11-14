@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/main.ts",
+    "build-image": "docker build -t crypto-bot:local .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

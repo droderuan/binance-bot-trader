@@ -3,6 +3,8 @@ version: "3.0"
 # comment out if you don't want to activate compose v2
 services:
   crypto-bot:
+    image: crypto-bot:local
+    restart: always
     build: .
     env_file:
       - .env
