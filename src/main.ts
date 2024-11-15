@@ -12,14 +12,14 @@ export const botConfig = new BotConfig({
     name: "SMA Crossover",
     config: {
       faster: {
-        window: 7,
+        window: Number(env.smaCrossover.faster.window) as Window,
         reference: {
           toBuy: "closePrice",
           toSell: "closePrice",
         },
       },
       slower: {
-        window: 25,
+        window: Number(env.smaCrossover.slower.window) as Window,
         reference: {
           toBuy: "closePrice",
           toSell: "closePrice",

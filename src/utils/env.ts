@@ -12,4 +12,12 @@ export default {
   binanceApiSecret: assertNotUndefined(process.env.BINANCE_API_SECRET),
   pair: assertNotUndefined(process.env.PAIR),
   window: assertNotUndefined(process.env.WINDOW),
+  smaCrossover: {
+    faster: {
+      window: assertNotUndefined(process.env.SMA_FASTER_WINDOW),
+    },
+    slower: {
+      window: assertNotUndefined(process.env.SMA_SLOWER_WINDOW),
+    },
+  },
 };
