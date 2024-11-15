@@ -29,6 +29,7 @@ export interface SmaCrossOverConfig {
 export class SmaCrossover extends GenericStrategy {
   private faster: SMA = null as any;
   private slower: SMA = null as any;
+  private smaPercentageDiff: number = -1;
   private params!: SmaCrossOverConfig;
 
   updateCandleReference(position: Position) {
@@ -86,17 +87,7 @@ export class SmaCrossover extends GenericStrategy {
     const currentFasterSmaValue = this.faster.lastSma();
     const currentSlowerSmaValue = this.slower.lastSma();
 
-    const smaPercentageDiff = this.calculateAbsolutePercentageDifference(
-      currentFasterSmaValue,
-      currentSlowerSmaValue
-    );
-
-    logger.log({
-      from: "STRATEGIE",
-      message: `SMA Crossover - box tolerance ${smaPercentageDiff}%`,
-    });
-
-    if (smaPercentageDiff <= this.params.boxTolerance) {
+    if (this.smaPercentageDiff <= this.params.boxTolerance) {
       return "NOTHING";
     }
 
@@ -128,6 +119,12 @@ export class SmaCrossover extends GenericStrategy {
   async update(newCandle: Candlestick) {
     this.faster.update(newCandle, false);
     this.slower.update(newCandle, false);
+
+    this.smaPercentageDiff = this.calculateAbsolutePercentageDifference(
+      this.faster.lastSma(),
+      this.slower.lastSma()
+    );
+
     this.log();
   }
 
@@ -136,6 +133,10 @@ export class SmaCrossover extends GenericStrategy {
     const currentSlowerSmaValue = this.slower.currentSMA();
 
     logger.log({ from: "STRATEGIE", message: `SMA Crossover` });
+    logger.log({
+      from: "STRATEGIE",
+      message: `box tolerance ${this.smaPercentageDiff}%`,
+    });
     logger.log({
       from: "STRATEGIE",
       message: `current faster SMA \t${currentFasterSmaValue}`,
