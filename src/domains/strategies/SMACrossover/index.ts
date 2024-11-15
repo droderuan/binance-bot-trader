@@ -53,7 +53,7 @@ export class SmaCrossover extends GenericStrategy {
       throw new Error("Undefined params");
     }
 
-    if (params.boxTolerance <= 0 && params.boxTolerance > 100) {
+    if (params.boxTolerance < 0 && params.boxTolerance > 100) {
       throw new Error("forbidden boxLimitTolerance");
     }
 
