@@ -75,6 +75,10 @@ export class SmaCrossover extends GenericStrategy {
       log: false,
     });
 
+    logger.log({
+      from: "STRATEGIE",
+      message: `SMA Crossover - params boxTolerance=${this.params.boxTolerance} faster.window=${this.params.faster.window} slower.window=${this.params.slower.window}`,
+    });
     logger.log({ from: "STRATEGIE", message: `SMA Crossover - initialized` });
   }
 
@@ -86,6 +90,11 @@ export class SmaCrossover extends GenericStrategy {
       currentFasterSmaValue,
       currentSlowerSmaValue
     );
+
+    logger.log({
+      from: "STRATEGIE",
+      message: `SMA Crossover - box tolerance ${smaPercentageDiff}%`,
+    });
 
     if (smaPercentageDiff <= this.params.boxTolerance) {
       return "NOTHING";
