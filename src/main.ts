@@ -7,10 +7,11 @@ import { CandleInterval, Window } from "./types/Candle";
 
 export const botConfig = new BotConfig({
   pair: env.pair as Pairs,
-  candleSize: env.window as CandleInterval,
+  candleSize: env.candleInterval as CandleInterval,
   strategy: {
     name: "SMA Crossover",
     config: {
+      boxTolerance: Number(env.smaCrossover.boxTolerance),
       faster: {
         window: Number(env.smaCrossover.faster.window) as Window,
         reference: {
