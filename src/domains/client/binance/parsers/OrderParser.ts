@@ -1,26 +1,27 @@
-import { Order } from "../../../../types/Order"
-import { OrderWsUpdateDTO } from "../../dtos/BalanceWebSocketDTO"
-import { PairOrderResponseDTO } from "../../dtos/PairOrderResponseDTO"
+import { Order as BinanceApiOrder, ExecutionReport } from "binance-api-node";
+
+import { Order } from "../../../../types/Order";
+import { OrderWsUpdateDTO } from "../../dtos/BalanceWebSocketDTO";
+import { PairOrderResponseDTO } from "../../dtos/PairOrderResponseDTO";
 
 export class OrderParser {
-  static parse(order: OrderWsUpdateDTO): Order {
+  static parse(order: ExecutionReport): Order {
     return {
-      pair: order.s,
-      id: order.i,
-      clientOrderId: order.c,
-      eventTime: order.E,
-      price: parseFloat(order.p),
-      quantity: parseFloat(order.q),
-      currentExecutionType: order.x,
-      type: order.o,
-      status: order.X,
-      lastExecutedQuantity: parseFloat(order.l),
-      side: order.S,
-      creationTime: order.O
-    } as Order
+      pair: order.symbol,
+      id: order.orderId,
+      clientOrderId: order.newClientOrderId,
+      eventTime: order.eventTime,
+      price: parseFloat(order.price),
+      quantity: parseFloat(order.quantity),
+      type: order.orderType,
+      status: order.orderStatus,
+      lastExecutedQuantity: parseFloat(order.totalTradeQuantity),
+      side: order.side,
+      creationTime: order.creationTime,
+    } as Order;
   }
 
-  static parsePairOrder(order: PairOrderResponseDTO): Order {
+  static parsePairOrder(order: BinanceApiOrder): Order {
     return {
       pair: order.symbol,
       id: order.orderId,
@@ -32,7 +33,7 @@ export class OrderParser {
       status: order.status,
       lastExecutedQuantity: parseFloat(order.executedQty),
       side: order.side,
-      creationTime: order.time
-    } as Order
+      creationTime: order.time,
+    } as Order;
   }
 }

@@ -1,22 +1,21 @@
-import axios, { AxiosInstance } from "axios";
-import https from "https";
-import Binance from "node-binance-api";
+import BinanceApi, {
+  Binance,
+  Candle,
+  OrderType,
+  UserDataStreamEvent,
+} from "binance-api-node";
 import { CandleInterval, Candlestick, Window } from "../../../types/Candle";
 import { Pairs } from "../../../types/Pair";
 import { Order } from "../../../types/Order";
 import { PairInfo } from "../../../types/Pair";
 import logger from "../../../utils/logger";
-import { PairsResponseDTO } from "../dtos/PairResponseDTO";
 
 import { CandlestickParser } from "./parsers/CandleParser";
 import { SymbolParser } from "./parsers/SymbolParser";
-import { updateBalanceWsDTO } from "../dtos/BalanceWebSocketDTO";
-import { Balance } from "../../services/WalletUserService";
-import { BalanceParser } from "./parsers/BalanceParser";
 import { OrderParser } from "./parsers/OrderParser";
-import { BalanceResponseDTO } from "../dtos/BalanceResponseDTO";
-import CandleWsResponseDTO from "../dtos/CandleWebSocketResponseDTO";
-import { PairOrderResponseDTO } from "../dtos/PairOrderResponseDTO";
+import { BalanceParser } from "./parsers/BalanceParser";
+
+import { Balance } from "../../services/WalletUserService";
 
 interface historicalParams {
   pair: Pairs;
@@ -26,7 +25,7 @@ interface historicalParams {
 
 class BinanceClient {
   client: Binance;
-  private axios: AxiosInstance;
+  useServerTime = true;
 
   constructor({
     apiKey,
@@ -39,16 +38,10 @@ class BinanceClient {
     useServerTime: boolean;
     test?: boolean;
   }) {
-    const client = new Binance().options({
-      APIKEY: apiKey,
-      APISECRET: apiSecret,
-      recvWindow: 30000,
-      useServerTime,
-      test,
-      family: 4,
+    const client = BinanceApi({
+      apiKey: apiKey,
+      apiSecret: apiSecret,
     });
-
-    this.axios = axios.create();
 
     this.client = client;
   }
@@ -57,136 +50,101 @@ class BinanceClient {
     pair,
     interval = "5m",
     window = 20,
-  }: historicalParams) {
+  }: historicalParams): Promise<Candlestick[]> {
     logger.log({
       from: "BINANCE CLIENT",
       message: `getting historical price of ${pair}`,
     });
-    return new Promise<Candlestick[]>((resolve, reject) => {
-      this.client.candlesticks(
-        pair,
-        interval,
-        (error: any, ticks: any[], pair: any) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          const parsedTicks = CandlestickParser.parseHistorical(
-            pair,
-            interval,
-            ticks
-          );
-          resolve(parsedTicks);
-          return;
-        },
-        { limit: window * 2 }
-      );
+
+    const candles = await this.client.candles({
+      symbol: pair,
+      interval,
+      limit: window * 2,
     });
+
+    const parsedTicks = CandlestickParser.parseHistorical(
+      pair,
+      interval,
+      candles
+    );
+
+    return parsedTicks;
   }
 
   async currentPrice(pair: Pairs): Promise<number> {
-    return new Promise((resolve, reject) => {
-      logger.log({
-        from: "BINANCE CLIENT",
-        message: `Getting current value of ${pair}`,
-      });
-      this.client.prices(
-        pair,
-        (error: any, ticker: { [key: string]: string }) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          resolve(parseFloat(ticker[pair]));
-          return;
-        }
-      );
-    });
+    const currentPrice = await this.client.prices({ symbol: pair });
+    return parseFloat(currentPrice[pair]);
   }
 
   async wait(cb: any) {
-    await this.client.useServerTime(cb);
+    this.client.time().then(cb);
   }
 
-  async currentBalance(coins: string[]): Promise<Balance> {
-    return new Promise((resolve, reject) => {
-      this.client.balance((error, balances: BalanceResponseDTO) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        const parsedBalance = BalanceParser.parseCurrentBalance(
-          coins,
-          balances
-        );
-        resolve(parsedBalance);
-        return;
-      });
+  async currentBalance(pairs: string[]): Promise<Balance> {
+    const accountBalance = await this.client.accountInfo({
+      useServerTime: this.useServerTime,
     });
+
+    const parsedBalance = BalanceParser.parseCurrentBalance(
+      pairs,
+      accountBalance
+    );
+
+    return parsedBalance;
   }
 
   async createBuyOrder(
-    coin: Pairs,
+    pair: Pairs,
     quantity: number,
     price: number
   ): Promise<Order> {
     logger.log({ from: "BINANCE CLIENT", message: `Creating a buy order` });
 
-    return new Promise((resolve, reject) => {
-      this.client.buy(
-        coin,
-        quantity,
-        price,
-        { type: "LIMIT" },
-        (error, response: PairOrderResponseDTO) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          const parsedOrder = OrderParser.parsePairOrder(response);
-
-          logger.log({ from: "BINANCE CLIENT", message: `Buy order created` });
-          logger.log({
-            from: "BINANCE CLIENT",
-            message: `Buy order: ${parsedOrder.id}`,
-          });
-
-          resolve(parsedOrder);
-          return;
-        }
-      );
+    const order = await this.client.order({
+      type: OrderType.LIMIT,
+      symbol: pair,
+      quantity: String(quantity),
+      price: String(price),
+      side: "BUY",
+      useServerTime: this.useServerTime,
     });
+
+    const parsedOrder = OrderParser.parsePairOrder(order);
+
+    logger.log({ from: "BINANCE CLIENT", message: `Buy order created` });
+    logger.log({
+      from: "BINANCE CLIENT",
+      message: `Buy order: ${parsedOrder.id}`,
+    });
+
+    return parsedOrder;
   }
 
   async createSellOrder(
-    coin: Pairs,
+    pair: Pairs,
     quantity: number,
     price: number
   ): Promise<Order> {
     logger.log({ from: "BINANCE CLIENT", message: `Creating a sell order` });
-    return new Promise((resolve, reject) => {
-      this.client.sell(
-        coin,
-        quantity,
-        price,
-        { type: "LIMIT" },
-        (error, response: PairOrderResponseDTO) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          const parsedOrder = OrderParser.parsePairOrder(response);
-          logger.log({ from: "BINANCE CLIENT", message: `Sell order created` });
-          logger.log({
-            from: "BINANCE CLIENT",
-            message: `Sell order: ${parsedOrder.id}`,
-          });
 
-          resolve(parsedOrder);
-          return;
-        }
-      );
+    const order = await this.client.order({
+      quantity: String(quantity),
+      price: String(price),
+      side: "SELL",
+      type: OrderType.LIMIT,
+      symbol: pair,
+      useServerTime: this.useServerTime,
     });
+
+    const parsedOrder = OrderParser.parsePairOrder(order);
+
+    logger.log({ from: "BINANCE CLIENT", message: `Sell order created` });
+    logger.log({
+      from: "BINANCE CLIENT",
+      message: `Sell order: ${parsedOrder.id}`,
+    });
+
+    return parsedOrder;
   }
 
   async orderStatus(order: Order): Promise<Order> {
@@ -194,7 +152,14 @@ class BinanceClient {
       from: "BINANCE CLIENT",
       message: `Checking order status: ${order.id}`,
     });
-    return this.client.orderStatus(order.pair, order.id);
+    const orderStatus = await this.client.getOrder({
+      symbol: order.pair,
+      orderId: order.id,
+      useServerTime: this.useServerTime,
+    });
+    const parsedOrder = OrderParser.parsePairOrder(orderStatus);
+
+    return parsedOrder;
   }
 
   async cancelOrder(order: Order): Promise<void> {
@@ -202,48 +167,38 @@ class BinanceClient {
       from: "BINANCE CLIENT",
       message: `Canceling order ${order.id}`,
     });
-    return new Promise((resolve, reject) => {
-      this.client.cancel(order.pair, order.id, (error: any, response: any) => {
-        if (error) {
-          reject(error);
-          return;
-        }
 
-        logger.log({
-          from: "BINANCE CLIENT",
-          message: `Order canceled: ${order.id}`,
-        });
-        resolve(response);
-        return;
-      });
+    await this.client.cancelOrder({
+      orderId: order.id,
+      symbol: order.pair,
+      useServerTime: this.useServerTime,
     });
+
+    logger.log({
+      from: "BINANCE CLIENT",
+      message: `Order canceled: ${order.id}`,
+    });
+    return;
   }
 
   async lastOrder(pair: Pairs): Promise<Order | null> {
-    return new Promise<Order>((resolve, reject) => {
-      this.client.allOrders(
-        pair,
-        (error, orders: PairOrderResponseDTO[], symbol) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          if (orders.length === 0) {
-            return null;
-          }
-          const parsedOrder = OrderParser.parsePairOrder(orders[0]);
-          resolve(parsedOrder);
-        },
-        { limit: 1 }
-      );
+    const orders = await this.client.allOrders({
+      symbol: pair,
+      limit: 1,
+      useServerTime: this.useServerTime,
     });
+
+    if (orders.length === 0) {
+      return null;
+    }
+
+    const parsedOrder = OrderParser.parsePairOrder(orders[0]);
+    return parsedOrder;
   }
 
   async PairInfo(pair: Pairs): Promise<PairInfo> {
-    const response = await this.axios.get<PairsResponseDTO>(
-      `https://api.binance.com/api/v3/exchangeInfo?symbol=${pair}`
-    );
-    return SymbolParser.parse(response.data)[0];
+    const response = await this.client.exchangeInfo({ symbol: pair });
+    return SymbolParser.parse(response)[0];
   }
 
   async createWsBalanceAndOrderUpdate({
@@ -257,21 +212,18 @@ class BinanceClient {
       from: "BINANCE CLIENT",
       message: "Starting websocket to update account balance",
     });
-    this.client.websockets.userData(
-      (update: updateBalanceWsDTO) => {
-        switch (update.e) {
-          case "outboundAccountPosition":
-            const parsedBalance = BalanceParser.parse(update);
-            balanceCallback(parsedBalance);
-            break;
-          case "executionReport":
-            const parsedOrder = OrderParser.parse(update);
-            orderCallback(parsedOrder);
-            break;
-        }
-      },
-      () => {}
-    );
+    this.client.ws.user((update: UserDataStreamEvent) => {
+      switch (update.eventType) {
+        case "outboundAccountPosition":
+          const parsedBalance = BalanceParser.parse(update);
+          balanceCallback(parsedBalance);
+          break;
+        case "executionReport":
+          const parsedOrder = OrderParser.parse(update);
+          orderCallback(parsedOrder);
+          break;
+      }
+    });
   }
 
   async createWsCandleStickUpdate({
@@ -287,14 +239,10 @@ class BinanceClient {
       from: "BINANCE CLIENT",
       message: "Starting websocket to update pair candlestick",
     });
-    this.client.websockets.candlesticks(
-      pair,
-      interval,
-      (candlestickData: CandleWsResponseDTO) => {
-        const candlestick = CandlestickParser.parse(candlestickData);
-        updateCallback(candlestick);
-      }
-    );
+    this.client.ws.candles(pair, interval, (candlestickData: Candle) => {
+      const candlestick = CandlestickParser.parse(candlestickData);
+      updateCallback(candlestick);
+    });
   }
 }
 

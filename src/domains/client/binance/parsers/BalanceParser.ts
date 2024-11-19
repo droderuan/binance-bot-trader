@@ -1,28 +1,39 @@
-import { Balance } from "../../../services/WalletUserService"
-import { BalanceResponseDTO } from "../../dtos/BalanceResponseDTO"
-import { BalanceWsUpdateDTO } from "../../dtos/BalanceWebSocketDTO"
+import { Account, OutboundAccountPosition } from "binance-api-node";
+import { Balance } from "../../../services/WalletUserService";
 
 export class BalanceParser {
-  static parse(lastBalance: BalanceWsUpdateDTO ): Balance {
-    return lastBalance.B.reduce((Pairs, value) => ({
-      ...Pairs,
-      [value.a]: {
-        available: parseFloat(value.f),
-        onOrder: parseFloat(value.l),
-      }
-    } as Balance), {} as Balance)
+  static parse(outboundAccountPositionWs: OutboundAccountPosition): Balance {
+    return outboundAccountPositionWs.balances.reduce(
+      (Pairs, value) =>
+        ({
+          ...Pairs,
+          [value.asset]: {
+            available: parseFloat(value.free),
+            onOrder: parseFloat(value.locked),
+          },
+        } as Balance),
+      {} as Balance
+    );
   }
 
-  static parseCurrentBalance(coins: string[], currentBalance: BalanceResponseDTO): Balance {
-    const coinsBalances = coins.map(coin => ({coinName: coin, info: currentBalance[coin]}))
-          
-    const parsedBalance = coinsBalances.reduce((balance: Balance, coin) =>{
-      return {...balance, [coin.coinName]: {
-        available: parseFloat(coin.info.available),
-        onOrder: parseFloat(coin.info.onOrder)
-      }} as Balance
-    }, {})
+  static parseCurrentBalance(
+    coins: string[],
+    currentBalance: Account
+  ): Balance {
+    const coinsBalances = currentBalance.balances.reduce(
+      (balances, currentCoin) => {
+        if (coins.includes(currentCoin.asset)) {
+          balances[currentCoin.asset] = {
+            available: parseFloat(currentCoin.free),
+            onOrder: parseFloat(currentCoin.locked),
+          };
+          return balances;
+        }
+        return balances;
+      },
+      {} as { [key: string]: { available: number; onOrder: number } }
+    );
 
-    return parsedBalance
+    return coinsBalances;
   }
 }
